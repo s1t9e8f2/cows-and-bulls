@@ -1,5 +1,17 @@
-/* Import a clean, modern font */
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+/* Import fonts: Poppins with weights 300 (light), 400 (regular), 600, 700 */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+
+:root {
+  --primary-color: #764ba2;
+  --primary-hover: #653e8f;
+  --heading-color: #4c3a8a;
+  --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --hint-color: #e0334d;
+  --card-bg: #ffffff;
+  --panel-bg: #2d2140;
+  --panel-hover: #3d2f57;
+  --border-color: #eee;
+}
 
 * {
   box-sizing: border-box;
@@ -7,7 +19,7 @@
 
 body {
   font-family: 'Poppins', sans-serif;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--bg-gradient);
   min-height: 100vh;
   margin: 0;
   padding: 40px 20px;
@@ -18,17 +30,17 @@ body {
 
 /* Main game card */
 .game-container {
-  background: #ffffff;
+  background: var(--card-bg);
   border-radius: 16px;
   padding: 32px 40px;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-  max-width: 420px;
+  max-width: 460px;
   width: 100%;
   text-align: center;
 }
 
 h1 {
-  color: #4c3a8a;
+  color: var(--heading-color);
   font-size: 2rem;
   margin-bottom: 8px;
 }
@@ -59,27 +71,68 @@ p {
 }
 
 /* Input + button */
+.input-wrapper {
+  position: relative;
+  display: inline-block;
+  width: 160px;
+  height: 52px;
+  vertical-align: middle;
+}
+
+/* Real input: captures typing/focus, invisible text & hidden caret cursor */
 #guessInput {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   font-size: 1.4rem;
   letter-spacing: 6px;
   text-align: center;
-  padding: 12px;
-  width: 160px;
   border: 2px solid #ddd;
   border-radius: 10px;
+  background: transparent;
+  color: transparent;
+  caret-color: transparent; /* Hides blinking cursor */
   outline: none;
-  transition: border-color 0.2s;
+  z-index: 2;
 }
 
 #guessInput:focus {
-  border-color: #764ba2;
+  border-color: var(--primary-color);
+}
+
+/* Overlay: shows the actual colored digits on top */
+.input-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: 6px;
+  pointer-events: none; /* Clicks pass through to the real input underneath */
+  z-index: 1;
+  color: #333;
+}
+
+/* Fine/light styling for placeholder question marks */
+.placeholder-digit {
+  font-weight: 300;
+  opacity: 0.4;
+  color: #888;
+}
+
+.hint-digit {
+  color: var(--hint-color);
 }
 
 #submitBtn {
   font-size: 1rem;
   font-weight: 600;
   color: #fff;
-  background: #764ba2;
+  background: var(--primary-color);
   border: none;
   border-radius: 10px;
   padding: 12px 24px;
@@ -89,7 +142,7 @@ p {
 }
 
 #submitBtn:hover {
-  background: #653e8f;
+  background: var(--primary-hover);
   transform: translateY(-1px);
 }
 
@@ -101,7 +154,7 @@ p {
 #result {
   font-size: 1.2rem;
   font-weight: 600;
-  color: #4c3a8a;
+  color: var(--heading-color);
   min-height: 1.5em;
   margin-top: 20px;
 }
@@ -109,6 +162,32 @@ p {
 #attemptsCount {
   color: #888;
   font-size: 0.9rem;
+}
+
+/* Hint & Restart section */
+.hint-section {
+  margin-top: 40px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+#hintBtn, #restartBtn {
+  font-size: 0.9rem;
+  color: var(--primary-color);
+  background: transparent;
+  border: 2px solid var(--primary-color);
+  border-radius: 10px;
+  padding: 10px 18px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+#hintBtn:hover, #restartBtn:hover {
+  background: var(--primary-color);
+  color: #fff;
 }
 
 /* History panel */
@@ -119,7 +198,7 @@ p {
   width: 220px;
   height: 100%;
   padding: 24px 16px;
-  background: #2d2140;
+  background: var(--panel-bg);
   color: #eee;
   overflow-y: auto;
   box-sizing: border-box;
@@ -150,9 +229,10 @@ p {
 }
 
 #historyPanel tbody tr:hover {
-  background: #3d2f57;
+  background: var(--panel-hover);
 }
 
+/* Help panel */
 #helpPanel {
   position: fixed;
   top: 0;
@@ -160,7 +240,7 @@ p {
   width: 240px;
   height: 100%;
   padding: 24px 20px;
-  background: #2d2140;
+  background: var(--panel-bg);
   color: #eee;
   overflow-y: auto;
   box-sizing: border-box;

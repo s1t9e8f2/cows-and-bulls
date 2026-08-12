@@ -1,122 +1,97 @@
-import { generateSecretNumberUnique, generateSecretNumberWithRepeats, checkGuess, hasRepeats } from './game-logic.js';
+import { checkGuess, hasRepeats } from './game-logic.js';
+import { elements, renderOverlay, renderHistory, showMessage, togglePanel } from './ui.js';
+import { gameState } from './game-state.js';
 
-let secretNumber = "";
-let attempts = 0;
-let history = []; // stores { guess, bulls, cows } for each attempt
-
-const advancedToggle = document.getElementById("advancedToggle");
-const historyToggle = document.getElementById("historyToggle");
-const guessInput = document.getElementById("guessInput");
-const submitBtn = document.getElementById("submitBtn");
-const resultDisplay = document.getElementById("result");
-const attemptsDisplay = document.getElementById("attemptsCount");
-const historyPanel = document.getElementById("historyPanel");
-const historyBody = document.getElementById("historyBody");
-const helpToggle = document.getElementById("helpToggle");
-const helpPanel = document.getElementById("helpPanel");
-
-// Starts a new round: generates a secret number based on the current mode
+// Starts or restarts a game round
 function startNewGame() {
-  const isAdvanced = advancedToggle.checked;
-  secretNumber = isAdvanced
-    ? generateSecretNumberUnique()
-    : generateSecretNumberWithRepeats();
-  attempts = 0;
-  history = [];
-  resultDisplay.textContent = "";
-  attemptsDisplay.textContent = "";
-  guessInput.value = "";
-  renderHistory();
-  guessInput.focus();
-
-  console.log(secretNumber); // for testing - remove later
-}
-
-// Rebuilds the history table from the history array
-function renderHistory() {
-  historyBody.innerHTML = "";
-  history.forEach(function(entry) {
-    const row = document.createElement("tr");
-
-    const guessCell = document.createElement("td");
-    guessCell.textContent = entry.guess;
-
-    const resultCell = document.createElement("td");
-    resultCell.textContent = `${entry.bulls}B / ${entry.cows}C`;
-
-    row.appendChild(guessCell);
-    row.appendChild(resultCell);
-    historyBody.appendChild(row);
-  });
+  gameState.reset(elements.advancedToggle.checked);
+  
+  elements.guessInput.value = "";
+  showMessage("", "");
+  renderHistory(gameState.history);
+  renderOverlay(elements.guessInput.value, gameState.hintedPositions);
+  elements.guessInput.focus();
 }
 
 // Submits the current guess and updates the game state
 function submitGuess() {
-  const guess = guessInput.value;
+  const guess = elements.guessInput.value;
 
-  if (advancedToggle.checked && hasRepeats(guess)) {
-    resultDisplay.textContent = "Advanced mode requires unique digits!";
+  if (guess.length < 4) {
+    showMessage("Please enter 4 digits!");
     return;
   }
 
-  attempts++;
-  const { bulls, cows } = checkGuess(secretNumber, guess);
+  if (elements.advancedToggle.checked && hasRepeats(guess)) {
+    showMessage("Advanced mode requires unique digits!");
+    return;
+  }
 
-  history.push({ guess, bulls, cows });
-  renderHistory();
+  gameState.attempts++;
+  const { bulls, cows } = checkGuess(gameState.secretNumber, guess);
 
-  resultDisplay.textContent = `Bulls: ${bulls}, Cows: ${cows}`;
-  attemptsDisplay.textContent = `Attempts: ${attempts}`;
+  gameState.history.push({ guess, bulls, cows });
+  renderHistory(gameState.history);
 
   if (bulls === 4) {
-    resultDisplay.textContent = `🎉 You won in ${attempts} attempts!`;
+    showMessage(`🎉 You won in ${gameState.attempts} attempts!`, `Attempts: ${gameState.attempts}`);
+  } else {
+    showMessage(`Bulls: ${bulls}, Cows: ${cows}`, `Attempts: ${gameState.attempts}`);
   }
 
-  // Clear input and keep focus on it for the next guess
-  guessInput.value = "";
-  guessInput.focus();
+  elements.guessInput.value = "";
+  gameState.hintedPositions = [];
+  renderOverlay(elements.guessInput.value, gameState.hintedPositions);
+  elements.guessInput.focus();
 }
 
-advancedToggle.addEventListener("change", startNewGame);
+// Handles giving a hint inside the input field
+function handleHint() {
+  const hint = gameState.getHint();
+  if (!hint) return;
 
-historyToggle.addEventListener("change", function() {
-  historyPanel.style.display = historyToggle.checked ? "block" : "none";
+  const currentChars = elements.guessInput.value.padEnd(4, " ").split("");
+  currentChars[hint.position] = hint.digit;
+
+  elements.guessInput.value = currentChars.join("").trimEnd();
+  renderOverlay(elements.guessInput.value, gameState.hintedPositions);
+  elements.guessInput.focus();
+}
+
+// --- Event Listeners ---
+
+elements.guessInput.addEventListener("input", () => {
+  gameState.syncHintsWithInput(elements.guessInput.value);
+  renderOverlay(elements.guessInput.value, gameState.hintedPositions);
 });
 
-submitBtn.addEventListener("click", submitGuess);
+elements.advancedToggle.addEventListener("change", startNewGame);
+elements.historyToggle.addEventListener("change", () => togglePanel(elements.historyPanel, elements.historyToggle.checked));
+elements.helpToggle.addEventListener("change", () => togglePanel(elements.helpPanel, elements.helpToggle.checked));
 
-// Keyboard shortcuts scoped to the input field
-guessInput.addEventListener("keydown", function(event) {
-  // Enter submits the guess
+elements.submitBtn.addEventListener("click", submitGuess);
+elements.restartBtn.addEventListener("click", startNewGame);
+elements.hintBtn.addEventListener("click", handleHint);
+
+elements.guessInput.addEventListener("keydown", (event) => {
   if (event.key === "Enter") {
-    submitBtn.click();
-    return;
-  }
-
-  // Escape clears the input
-  if (event.key === "Escape") {
-    guessInput.value = "";
-    return;
-  }
-
-  // Allow only digits plus control/navigation keys
-  const isDigit = /^[0-9]$/.test(event.key);
-  const isControlKey = ["Backspace", "Delete", "ArrowLeft", "ArrowRight", "Tab"].includes(event.key);
-
-  if (!isDigit && !isControlKey) {
-    event.preventDefault();
+    submitGuess();
+  } else if (event.key === "Escape") {
+    elements.guessInput.value = "";
+    gameState.hintedPositions = [];
+    renderOverlay(elements.guessInput.value, gameState.hintedPositions);
+  } else {
+    const isDigit = /^[0-9]$/.test(event.key);
+    const isControlKey = ["Backspace", "Delete", "ArrowLeft", "ArrowRight", "Tab"].includes(event.key);
+    if (!isDigit && !isControlKey) event.preventDefault();
   }
 });
 
-helpToggle.addEventListener("change", function() {
-  helpPanel.style.display = helpToggle.checked ? "block" : "none";
-});
-
-// Global shortcut: Ctrl/Cmd + Enter restarts the game
-document.addEventListener("keydown", function(event) {
+document.addEventListener("keydown", (event) => {
   if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
     startNewGame();
   }
 });
 
+// Initialize game
 startNewGame();

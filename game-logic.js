@@ -10,12 +10,14 @@ export function generateSecretNumberWithRepeats(length = 4) {
 // Generates a secret number with unique digits only (Advanced mode)
 export function generateSecretNumberUnique(length = 4) {
   const digits = ['0','1','2','3','4','5','6','7','8','9'];
-  const shuffled = digits.sort(() => Math.random() - 0.5);
-  let secret = '';
-  for (let i = 0; i < length; i++) {
-    secret += shuffled[i];
+  
+  // Fisher-Yates Shuffle algorithm for unbiased randomness
+  for (let i = digits.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [digits[i], digits[j]] = [digits[j], digits[i]];
   }
-  return secret;
+
+  return digits.slice(0, length).join('');
 }
 
 // Compares the guess against the secret number and counts bulls/cows
@@ -42,7 +44,7 @@ export function checkGuess(secret, guess) {
       const indexInSecret = secretDigits.indexOf(guessDigits[i]);
       if (indexInSecret !== -1) {
         cows++;
-        secretDigits[indexInSecret] = null; // mark as used so it's not counted twice
+        secretDigits[indexInSecret] = null; // Mark as used so it's not counted twice
       }
     }
   }
