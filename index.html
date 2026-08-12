@@ -6,24 +6,27 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>Cows and Bulls</h1>
+  <div class="game-container">
+    <h1>Cows and Bulls</h1>
 
-  <label>
-    <input type="checkbox" id="advancedToggle">
-    Advanced mode (unique digits only)
-  </label>
+    <div class="toggles">
+      <label>
+        <input type="checkbox" id="advancedToggle">
+        Advanced mode
+      </label>
+      <label>
+        <input type="checkbox" id="historyToggle">
+        Show history
+      </label>
+    </div>
 
-  <label>
-    <input type="checkbox" id="historyToggle">
-    Show history
-  </label>
+    <p>Guess the 4-digit secret number.</p>
+    <input type="text" id="guessInput" maxlength="4" placeholder="????">
+    <button id="submitBtn">Submit</button>
 
-  <p>Guess the 4-digit secret number.</p>
-  <input type="text" id="guessInput" maxlength="4" placeholder="Enter your guess">
-  <button id="submitBtn">Submit</button>
-
-  <p id="result"></p>
-  <p id="attemptsCount"></p>
+    <p id="result"></p>
+    <p id="attemptsCount"></p>
+  </div>
 
   <aside id="historyPanel" style="display: none;">
     <h2>History</h2>
