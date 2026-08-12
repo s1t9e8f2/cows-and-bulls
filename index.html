@@ -13,12 +13,30 @@
     Advanced mode (unique digits only)
   </label>
 
+  <label>
+    <input type="checkbox" id="historyToggle">
+    Show history
+  </label>
+
   <p>Guess the 4-digit secret number.</p>
   <input type="text" id="guessInput" maxlength="4" placeholder="Enter your guess">
   <button id="submitBtn">Submit</button>
 
   <p id="result"></p>
   <p id="attemptsCount"></p>
+
+  <aside id="historyPanel" style="display: none;">
+    <h2>History</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Guess</th>
+          <th>Bulls / Cows</th>
+        </tr>
+      </thead>
+      <tbody id="historyBody"></tbody>
+    </table>
+  </aside>
 
   <script type="module" src="script.js"></script>
 </body>
