@@ -12,6 +12,8 @@ const resultDisplay = document.getElementById("result");
 const attemptsDisplay = document.getElementById("attemptsCount");
 const historyPanel = document.getElementById("historyPanel");
 const historyBody = document.getElementById("historyBody");
+const helpToggle = document.getElementById("helpToggle");
+const helpPanel = document.getElementById("helpPanel");
 
 // Starts a new round: generates a secret number based on the current mode
 function startNewGame() {
@@ -104,6 +106,10 @@ guessInput.addEventListener("keydown", function(event) {
   if (!isDigit && !isControlKey) {
     event.preventDefault();
   }
+});
+
+helpToggle.addEventListener("change", function() {
+  helpPanel.style.display = helpToggle.checked ? "block" : "none";
 });
 
 // Global shortcut: Ctrl/Cmd + Enter restarts the game

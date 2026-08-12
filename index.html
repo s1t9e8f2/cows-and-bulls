@@ -18,6 +18,10 @@
         <input type="checkbox" id="historyToggle">
         Show history
       </label>
+      <label>
+        <input type="checkbox" id="helpToggle">
+        Help
+      </label>
     </div>
 
     <p>Guess the 4-digit secret number.</p>
@@ -39,6 +43,24 @@
       </thead>
       <tbody id="historyBody"></tbody>
     </table>
+  </aside>
+
+  <aside id="helpPanel" style="display: none;">
+  <h2>How to play</h2>
+  <ul>
+    <li>Guess the secret 4-digit number.</li>
+    <li><strong>Bull</strong> = correct digit, correct position.</li>
+    <li><strong>Cow</strong> = correct digit, wrong position.</li>
+    <li><strong>Advanced mode</strong>: secret number has no repeated digits.</li>
+    <li><strong>Beginner mode</strong>: digits can repeat.</li>
+  </ul>
+
+  <h2>Keyboard shortcuts</h2>
+  <ul>
+    <li><kbd>Enter</kbd> — submit guess</li>
+    <li><kbd>Esc</kbd> — clear input</li>
+    <li><kbd>Ctrl</kbd> + <kbd>Enter</kbd> — restart game</li>
+  </ul>
   </aside>
 
   <script type="module" src="script.js"></script>
