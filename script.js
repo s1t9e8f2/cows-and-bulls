@@ -23,7 +23,9 @@ function startNewGame() {
   history = [];
   resultDisplay.textContent = "";
   attemptsDisplay.textContent = "";
+  guessInput.value = "";
   renderHistory();
+  guessInput.focus();
 
   console.log(secretNumber); // for testing - remove later
 }
@@ -46,16 +48,8 @@ function renderHistory() {
   });
 }
 
-advancedToggle.addEventListener("change", startNewGame);
-
-// Toggles the visibility of the history panel
-historyToggle.addEventListener("change", function() {
-  historyPanel.style.display = historyToggle.checked ? "block" : "none";
-});
-
-startNewGame();
-
-submitBtn.addEventListener("click", function() {
+// Submits the current guess and updates the game state
+function submitGuess() {
   const guess = guessInput.value;
 
   if (advancedToggle.checked && hasRepeats(guess)) {
@@ -75,4 +69,48 @@ submitBtn.addEventListener("click", function() {
   if (bulls === 4) {
     resultDisplay.textContent = `🎉 You won in ${attempts} attempts!`;
   }
+
+  // Clear input and keep focus on it for the next guess
+  guessInput.value = "";
+  guessInput.focus();
+}
+
+advancedToggle.addEventListener("change", startNewGame);
+
+historyToggle.addEventListener("change", function() {
+  historyPanel.style.display = historyToggle.checked ? "block" : "none";
 });
+
+submitBtn.addEventListener("click", submitGuess);
+
+// Keyboard shortcuts scoped to the input field
+guessInput.addEventListener("keydown", function(event) {
+  // Enter submits the guess
+  if (event.key === "Enter") {
+    submitBtn.click();
+    return;
+  }
+
+  // Escape clears the input
+  if (event.key === "Escape") {
+    guessInput.value = "";
+    return;
+  }
+
+  // Allow only digits plus control/navigation keys
+  const isDigit = /^[0-9]$/.test(event.key);
+  const isControlKey = ["Backspace", "Delete", "ArrowLeft", "ArrowRight", "Tab"].includes(event.key);
+
+  if (!isDigit && !isControlKey) {
+    event.preventDefault();
+  }
+});
+
+// Global shortcut: Ctrl/Cmd + Enter restarts the game
+document.addEventListener("keydown", function(event) {
+  if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
+    startNewGame();
+  }
+});
+
+startNewGame();
