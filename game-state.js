@@ -18,13 +18,6 @@ export const gameState = {
     console.log("Secret Number:", this.secretNumber); // For testing purpose
   },
 
-  // Filters out hinted positions if the user typed over them
-  syncHintsWithInput(currentValue) {
-    this.hintedPositions = this.hintedPositions.filter(
-      (pos) => currentValue[pos] === this.secretNumber[pos]
-    );
-  },
-
   // Generates a random hint for an unrevealed position
   getHint() {
     const remainingPositions = [];

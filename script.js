@@ -1,5 +1,5 @@
 import { checkGuess, hasRepeats } from './game-logic.js';
-import { elements, renderOverlay, renderHistory, showMessage, togglePanel } from './ui.js';
+import { elements, renderOverlay, renderHistory, showMessage, togglePanel, selectNextEmptySlot } from './ui.js';
 import { gameState } from './game-state.js';
 
 // Starts or restarts a game round
@@ -15,7 +15,7 @@ function startNewGame() {
 
 // Submits the current guess and updates the game state
 function submitGuess() {
-  const guess = elements.guessInput.value;
+  const guess = elements.guessInput.value.replace(/\s/g, "");
 
   if (guess.length < 4) {
     showMessage("Please enter 4 digits!");
@@ -39,10 +39,16 @@ function submitGuess() {
     showMessage(`Bulls: ${bulls}, Cows: ${cows}`, `Attempts: ${gameState.attempts}`);
   }
 
-  elements.guessInput.value = "";
-  gameState.hintedPositions = [];
+  // Preserve hints logic for the next attempt
+  const nextInputChars = [" ", " ", " ", " "];
+  gameState.hintedPositions.forEach((pos) => {
+    nextInputChars[pos] = gameState.secretNumber[pos];
+  });
+  
+  elements.guessInput.value = nextInputChars.join("").trimEnd();
   renderOverlay(elements.guessInput.value, gameState.hintedPositions);
   elements.guessInput.focus();
+  selectNextEmptySlot();
 }
 
 // Handles giving a hint inside the input field
@@ -52,16 +58,49 @@ function handleHint() {
 
   const currentChars = elements.guessInput.value.padEnd(4, " ").split("");
   currentChars[hint.position] = hint.digit;
+  elements.guessInput.value = currentChars.join("");
+
+  renderOverlay(elements.guessInput.value, gameState.hintedPositions);
+
+  elements.guessInput.focus();
+  selectNextEmptySlot();
+}
+
+// Custom typing handler to put digits in the next free slot
+function handleDigitInput(key) {
+  const currentChars = elements.guessInput.value.padEnd(4, " ").split("");
+  
+  // Find first empty space index that is not a hinted position
+  const emptyIndex = currentChars.findIndex((char, i) => char === " " && !gameState.hintedPositions.includes(i));
+  
+  if (emptyIndex !== -1) {
+    currentChars[emptyIndex] = key;
+    elements.guessInput.value = currentChars.join("");
+    renderOverlay(elements.guessInput.value, gameState.hintedPositions);
+    selectNextEmptySlot();
+  }
+}
+
+// Custom backspace handler to erase only user-typed digits, skipping hints
+function handleBackspace() {
+  const currentChars = elements.guessInput.value.padEnd(4, " ").split("");
+
+  // Find the last user-entered character (ignoring spaces and hinted positions)
+  for (let i = currentChars.length - 1; i >= 0; i--) {
+    if (currentChars[i] !== " " && !gameState.hintedPositions.includes(i)) {
+      currentChars[i] = " ";
+      break;
+    }
+  }
 
   elements.guessInput.value = currentChars.join("").trimEnd();
   renderOverlay(elements.guessInput.value, gameState.hintedPositions);
-  elements.guessInput.focus();
+  selectNextEmptySlot();
 }
 
 // --- Event Listeners ---
 
 elements.guessInput.addEventListener("input", () => {
-  gameState.syncHintsWithInput(elements.guessInput.value);
   renderOverlay(elements.guessInput.value, gameState.hintedPositions);
 });
 
@@ -76,14 +115,38 @@ elements.hintBtn.addEventListener("click", handleHint);
 elements.guessInput.addEventListener("keydown", (event) => {
   if (event.key === "Enter") {
     submitGuess();
-  } else if (event.key === "Escape") {
-    elements.guessInput.value = "";
-    gameState.hintedPositions = [];
+    return;
+  }
+
+  if (event.key === "Escape") {
+    const nextInputChars = [" ", " ", " ", " "];
+    gameState.hintedPositions.forEach((pos) => {
+      nextInputChars[pos] = gameState.secretNumber[pos];
+    });
+    elements.guessInput.value = nextInputChars.join("").trimEnd();
     renderOverlay(elements.guessInput.value, gameState.hintedPositions);
-  } else {
-    const isDigit = /^[0-9]$/.test(event.key);
-    const isControlKey = ["Backspace", "Delete", "ArrowLeft", "ArrowRight", "Tab"].includes(event.key);
-    if (!isDigit && !isControlKey) event.preventDefault();
+    selectNextEmptySlot();
+    return;
+  }
+
+  const isDigit = /^[0-9]$/.test(event.key);
+
+  if (isDigit) {
+    event.preventDefault();
+    handleDigitInput(event.key);
+    return;
+  }
+
+  if (event.key === "Backspace") {
+    event.preventDefault();
+    handleBackspace();
+    return;
+  }
+
+  // Allow only navigation keys like arrows and Tab
+  const isAllowedNav = ["ArrowLeft", "ArrowRight", "Tab"].includes(event.key);
+  if (!isAllowedNav) {
+    event.preventDefault(); // Block letters, symbols, Delete, and other unwanted keys
   }
 });
 

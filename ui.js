@@ -65,3 +65,18 @@ export function showMessage(resultText = "", attemptsText = "") {
 export function togglePanel(panelElement, isVisible) {
   panelElement.style.display = isVisible ? "block" : "none";
 }
+
+// Selects the next empty (space) slot or non-hinted slot so typing overwrites in place
+// Moves cursor to the next empty (space) slot without highlighting/selecting text
+export function selectNextEmptySlot() {
+  const value = elements.guessInput.value;
+  const emptyIndex = value.indexOf(" ");
+
+  if (emptyIndex === -1) {
+    // No empty slots left - place cursor at the end
+    elements.guessInput.setSelectionRange(value.length, value.length);
+  } else {
+    // Set cursor start and end to the same position (no selection highlight)
+    elements.guessInput.setSelectionRange(emptyIndex, emptyIndex);
+  }
+}
