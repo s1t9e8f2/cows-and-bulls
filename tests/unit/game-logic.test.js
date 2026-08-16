@@ -27,6 +27,12 @@ describe('checkGuess', () => {
     // secret has only one 5; guessing four 5s should count just one cow, no bulls
     expect(checkGuess('5678', '5555')).toEqual({ bulls: 1, cows: 0 });
   });
+
+  test('does not overcount cows or bulls when guess has more repeated digits than secret', () => {
+  // secret has two 1s; guess has three 1s
+  // First '1' is Bull at index 0, second '1' is Cow for index 1, third '1' should be ignored
+  expect(checkGuess('1123', '1411')).toEqual({ bulls: 1, cows: 1 });
+});
 });
 
 describe('hasRepeats', () => {
@@ -94,4 +100,11 @@ describe('generateSecretNumberUnique', () => {
     const result = generateSecretNumberUnique(6);
     expect(result.length).toBe(6);
   });
+
+  test('handles edge case length for unique digits generation', () => {
+  // Requesting max available unique digits
+  const maxResult = generateSecretNumberUnique(10);
+  expect(maxResult.length).toBe(10);
+  expect(hasRepeats(maxResult)).toBe(false);
+});
 });
