@@ -2,28 +2,80 @@ import { checkGuess, hasRepeats } from './game-logic.js';
 import { elements, renderOverlay, renderHistory, showMessage, togglePanel, selectNextEmptySlot } from './ui.js';
 import { gameState } from './game-state.js';
 
+// --- Timer State ---
+const GAME_TIME_LIMIT = 240; // 240 seconds
+let timerInterval = null;
+let timeRemaining = GAME_TIME_LIMIT;
+let lastResultMessage = "";
+
+function updateTimerDisplay() {
+  const timerText = `⏱️ ${timeRemaining}s`;
+  const displayMessage = lastResultMessage ? `${lastResultMessage} | ${timerText}` : timerText;
+  showMessage(displayMessage, gameState.attempts > 0 ? `Attempts: ${gameState.attempts}` : "");
+}
+
+function startTimer() {
+  stopTimer();
+  timeRemaining = GAME_TIME_LIMIT;
+  lastResultMessage = "";
+  updateTimerDisplay();
+
+  timerInterval = setInterval(() => {
+    timeRemaining--;
+
+    if (timeRemaining <= 0) {
+      stopTimer();
+      handleTimeOut();
+    } else {
+      updateTimerDisplay();
+    }
+  }, 1000);
+}
+
+function stopTimer() {
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+}
+
+function handleTimeOut() {
+  showMessage("⏰ Time is up! You lost this round.", "");
+  if (elements.guessInput) elements.guessInput.disabled = true;
+  if (elements.submitBtn) elements.submitBtn.disabled = true;
+}
+
 // Starts or restarts a game round
 function startNewGame() {
   gameState.reset(elements.advancedToggle.checked);
   
+  if (elements.guessInput) elements.guessInput.disabled = false;
+  if (elements.submitBtn) elements.submitBtn.disabled = false;
+
   elements.guessInput.value = "";
-  showMessage("", "");
   renderHistory(gameState.history);
   renderOverlay(elements.guessInput.value, gameState.hintedPositions);
+  
+  startTimer(); // Start timer from 240s
+
   elements.guessInput.focus();
 }
 
 // Submits the current guess and updates the game state
 function submitGuess() {
+  if (timeRemaining <= 0) return;
+
   const guess = elements.guessInput.value.replace(/\s/g, "");
 
   if (guess.length < 4) {
-    showMessage("Please enter 4 digits!");
+    lastResultMessage = "Please enter 4 digits!";
+    updateTimerDisplay();
     return;
   }
 
   if (elements.advancedToggle.checked && hasRepeats(guess)) {
-    showMessage("Advanced mode requires unique digits!");
+    lastResultMessage = "Advanced mode requires unique digits!";
+    updateTimerDisplay();
     return;
   }
 
@@ -34,9 +86,12 @@ function submitGuess() {
   renderHistory(gameState.history);
 
   if (bulls === 4) {
-    showMessage(`🎉 You won in ${gameState.attempts} attempts!`, `Attempts: ${gameState.attempts}`);
+    stopTimer();
+    const timeTaken = GAME_TIME_LIMIT - timeRemaining;
+    showMessage(`🎉 You won in ${gameState.attempts} attempts for ${timeTaken} seconds!`, `Attempts: ${gameState.attempts}`);
   } else {
-    showMessage(`Bulls: ${bulls}, Cows: ${cows}`, `Attempts: ${gameState.attempts}`);
+    lastResultMessage = `Bulls: ${bulls}, Cows: ${cows}`;
+    updateTimerDisplay();
   }
 
   // Preserve hints logic for the next attempt
@@ -53,6 +108,8 @@ function submitGuess() {
 
 // Handles giving a hint inside the input field
 function handleHint() {
+  if (timeRemaining <= 0) return;
+
   const hint = gameState.getHint();
   if (!hint) return;
 
@@ -68,9 +125,10 @@ function handleHint() {
 
 // Custom typing handler to put digits in the next free slot
 function handleDigitInput(key) {
+  if (timeRemaining <= 0) return;
+
   const currentChars = elements.guessInput.value.padEnd(4, " ").split("");
   
-  // Find first empty space index that is not a hinted position
   const emptyIndex = currentChars.findIndex((char, i) => char === " " && !gameState.hintedPositions.includes(i));
   
   if (emptyIndex !== -1) {
@@ -83,9 +141,10 @@ function handleDigitInput(key) {
 
 // Custom backspace handler to erase only user-typed digits, skipping hints
 function handleBackspace() {
+  if (timeRemaining <= 0) return;
+
   const currentChars = elements.guessInput.value.padEnd(4, " ").split("");
 
-  // Find the last user-entered character (ignoring spaces and hinted positions)
   for (let i = currentChars.length - 1; i >= 0; i--) {
     if (currentChars[i] !== " " && !gameState.hintedPositions.includes(i)) {
       currentChars[i] = " ";
@@ -113,6 +172,8 @@ elements.restartBtn.addEventListener("click", startNewGame);
 elements.hintBtn.addEventListener("click", handleHint);
 
 elements.guessInput.addEventListener("keydown", (event) => {
+  if (timeRemaining <= 0) return;
+
   if (event.key === "Enter") {
     submitGuess();
     return;
@@ -143,10 +204,9 @@ elements.guessInput.addEventListener("keydown", (event) => {
     return;
   }
 
-  // Allow only navigation keys like arrows and Tab
   const isAllowedNav = ["ArrowLeft", "ArrowRight", "Tab"].includes(event.key);
   if (!isAllowedNav) {
-    event.preventDefault(); // Block letters, symbols, Delete, and other unwanted keys
+    event.preventDefault();
   }
 });
 
@@ -156,9 +216,6 @@ document.addEventListener("keydown", (event) => {
   }
 });
 
-// Exposes gameState ONLY when Playwright has pre-injected this flag before page load.
-// A normal player cannot set this before script.js runs, since it must exist
-// prior to this script executing - opening the console afterwards is too late.
 if (window.__TEST_MODE__) {
   window.__testHooks = { gameState };
 }

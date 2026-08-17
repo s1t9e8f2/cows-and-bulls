@@ -16,7 +16,7 @@ test.describe('Controlled bulls/cows outcomes', () => {
     await page.locator('#submitBtn').click();
 
     await expect(page.locator('#result')).toContainText('🎉');
-    await expect(page.locator('#result')).toContainText('You won in 1 attempts!');
+    await expect(page.locator('#result')).toContainText('You won in 1 attempts');
   });
 
   test('1 bull and 3 cows shows the correct count', async ({ page }) => {
