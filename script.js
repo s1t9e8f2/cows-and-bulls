@@ -156,5 +156,12 @@ document.addEventListener("keydown", (event) => {
   }
 });
 
+// Exposes gameState ONLY when Playwright has pre-injected this flag before page load.
+// A normal player cannot set this before script.js runs, since it must exist
+// prior to this script executing - opening the console afterwards is too late.
+if (window.__TEST_MODE__) {
+  window.__testHooks = { gameState };
+}
+
 // Initialize game
 startNewGame();

@@ -15,7 +15,7 @@ export const gameState = {
     this.history = [];
     this.hintedPositions = [];
     
-    console.log("Secret Number:", this.secretNumber); // For testing purpose
+    //console.log("Secret Number:", this.secretNumber); // For testing purpose
   },
 
   // Generates a random hint for an unrevealed position
