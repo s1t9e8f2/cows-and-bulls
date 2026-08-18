@@ -1,4 +1,4 @@
-import { checkGuess, hasRepeats } from './game-logic.js';
+import { checkGuess, hasRepeats, calculateScore } from './game-logic.js';
 import { elements, renderOverlay, renderHistory, showMessage, togglePanel, selectNextEmptySlot } from './ui.js';
 import { gameState } from './game-state.js';
 
@@ -56,7 +56,7 @@ function startNewGame() {
   renderHistory(gameState.history);
   renderOverlay(elements.guessInput.value, gameState.hintedPositions);
   
-  startTimer(); // Start timer from 240s
+  startTimer();
 
   elements.guessInput.focus();
 }
@@ -88,7 +88,12 @@ function submitGuess() {
   if (bulls === 4) {
     stopTimer();
     const timeTaken = GAME_TIME_LIMIT - timeRemaining;
-    showMessage(`🎉 You won in ${gameState.attempts} attempts for ${timeTaken} seconds!`, `Attempts: ${gameState.attempts}`);
+    const score = calculateScore(timeRemaining, gameState.attempts, gameState.hintedPositions.length);
+    
+    showMessage(
+      `🎉 You won in ${gameState.attempts} attempts for ${timeTaken} seconds! Score: ${score.toLocaleString()} pts`, 
+      `Attempts: ${gameState.attempts}`
+    );
   } else {
     lastResultMessage = `Bulls: ${bulls}, Cows: ${cows}`;
     updateTimerDisplay();

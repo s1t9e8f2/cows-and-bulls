@@ -26,7 +26,7 @@
 
     <p>Guess the 4-digit secret number.</p>
     <div class="input-wrapper">
-        <input type="text" id="guessInput" maxlength="4" placeholder="????" aria-label="Enter your 4-digit guess"  autocomplete="off">
+        <input type="text" id="guessInput" maxlength="4" placeholder="????" aria-label="Enter your 4-digit guess" autocomplete="off">
         <div id="inputOverlay" class="input-overlay"></div>
     </div>
     <button id="submitBtn">Submit</button>
@@ -62,6 +62,16 @@
       <li><strong>Advanced mode</strong>: secret number has no repeated digits.</li>
       <li><strong>Beginner mode</strong>: digits can repeat.</li>
     </ul>
+
+    <h2>Scoring system</h2>
+    <div class="scoring-rules">
+      <ul>
+        <li>Base points for winning: +5,000 pts</li>
+        <li>Speed bonus: +10 pts / remaining sec</li>
+        <li>Each attempt (after 1st): -150 pts</li>
+        <li>Each hint: -1,000 pts</li>
+      </ul>
+    </div>
 
     <h2>Keyboard shortcuts</h2>
     <ul>

@@ -56,3 +56,14 @@ export function checkGuess(secret, guess) {
 export function hasRepeats(str) {
   return new Set(str).size !== str.length;
 }
+
+// Calculates the final score for a winning game
+export function calculateScore(timeRemaining, attempts, hintsCount) {
+  const base = 5000;
+  const speedBonus = timeRemaining * 10;
+  const attemptPenalty = Math.max(0, attempts - 1) * 150;
+  const hintPenalty = hintsCount * 1000;
+
+  const total = base + speedBonus - attemptPenalty - hintPenalty;
+  return Math.max(0, total); // Ensures the score never drops below 0
+}
